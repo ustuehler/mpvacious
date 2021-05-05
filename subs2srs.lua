@@ -58,7 +58,9 @@ local config = {
     audio_field = "SentAudio",
     image_field = "Image",
     tag_nuke_brackets = true,      -- delete all text inside brackets before subsituting filename into tag
-    append_media=true,             -- True to append video media after existing data, false to insert media before
+    replace_sentence = true,       -- True to replace existing sentence with subtitle, false to keep it unchanged
+    replace_media = false,         -- True to replace existing data with video media, false to insert or append media
+    append_media = true,           -- True to append video media after existing data, false to insert media before
 
     -- Note tagging
     -- The tag(s) added to new notes. Spaces separate multiple tags.
@@ -612,10 +614,18 @@ local function update_last_note(overwrite)
         new_data = append_forvo_pronunciation(new_data, stored_data)
         new_data = update_sentence(new_data, stored_data)
         if not overwrite then
-            if config.append_media then
+            if config.replace_media then
+                stored_data[config.audio_field] = ""
+                stored_data[config.image_field] = ""
+                new_data = join_media_fields(stored_data, new_data)
+            elseif config.append_media then
                 new_data = join_media_fields(new_data, stored_data)
             else
                 new_data = join_media_fields(stored_data, new_data)
+            end
+
+            if not replace_sentence then
+              new_data[config.sentence_field] = stored_data[config.sentence_field]
             end
         end
     end
